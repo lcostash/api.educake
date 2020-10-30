@@ -39,11 +39,11 @@ services:
         tags:
             - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest, priority: 0 }
 
-        App\Core\EventException:
-            arguments:
-                - '@session'
-                - '@translator'
-                - '@service_container'
-            tags:
-                - { name: kernel.event_listener, event: kernel.exception, method: onKernelException, priority: 0 }
-            lazy: true
+    App\Core\EventException:
+        arguments:
+            - '@session'
+            - '@translator'
+            - '@service_container'
+        tags:
+            - { name: kernel.event_listener, event: kernel.exception, method: onKernelException, priority: 0 }
+        lazy: true

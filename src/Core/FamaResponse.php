@@ -2,7 +2,6 @@
 
 namespace App\Core;
 
-use Google_Service_Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -34,13 +33,6 @@ class FamaResponse extends JsonResponse
             if ($data instanceof UsernameNotFoundException) {
                 $status = Response::HTTP_UNAUTHORIZED;
                 $message = Response::$statusTexts[Response::HTTP_UNAUTHORIZED];
-            }
-            if ($data instanceof Google_Service_Exception) {
-                $response = json_decode($data->getMessage());
-                if (isset($response->error)) {
-                    $status = $response->error->code;
-                    $message = $response->error->message;
-                }
             }
             $response = [
                 'status' => $status,

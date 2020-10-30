@@ -2,10 +2,8 @@
 
 namespace App\Controller;
 
-use App\Core\Enum\ConstraintEnum;
 use App\Core\FamaResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
@@ -37,93 +35,157 @@ class IntensityController extends MainController
 
 
     /**
-     * Get Carbon Intensity data for current half hour
-     * @Route("/intensity", methods={"GET"}, requirements={"_format":"json"})
+     * Get Carbon Intensity data for current half hour or between from and to datetime
+     * @see https://carbon-intensity.github.io/api-definitions/#get-intensity
+     * @see https://carbon-intensity.github.io/api-definitions/#get-intensity-from-to
+     *
+     * @Route("/intensity/{from?}/{to?}", methods={"GET"}, requirements={
+     *     "_format":"json",
+     *     "from":"\d{4}-\d{2}-\d{2}T([0-9]|1[0-9]|2[0-3]):([0-9]|[1-4][0-9]|5[0-9])",
+     *     "to":"\d{4}-\d{2}-\d{2}T([0-9]|1[0-9]|2[0-3]):([0-9]|[1-4][0-9]|5[0-9])"
+     * })
+     * @param Request $request
+     * @param string $from - optional param. Start datetime in in ISO8601 format YYYY-MM-DDThh:mmZ e.g. 2017-08-25T12:35Z
+     * @param string $to - optional param. End datetime in in ISO8601 format YYYY-MM-DDThh:mmZ e.g. 2017-08-25T12:35Z
      * @return FamaResponse
-     * @throws Exception
+     * @throws ClientExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
      */
-    public function getRows(): FamaResponse
+    public function getRows(Request $request, $from, $to): FamaResponse
     {
         try {
-            $response = $this->httpClient->request('GET', self::URL);
-            $data = $response->toArray();
-
-            if ($response->getStatusCode() !== 200 && isset($data['error'])) {
-                throw new Exception($data['error']['code'], $response->getStatusCode());
+            $url = self::URL . '/date';
+            if (!is_null($from)) {
+                $url .= '/' . $from;
+            }
+            if (!is_null($to)) {
+                $url .= '/' . $to;
+            }
+            $response = $this->fetchData($url);
+            if ($response['status'] !== 200 && isset($response['data'])) {
+                throw new Exception($response['data'], $response['status']);
             }
 
             $data = [
-                'status' => Response::HTTP_OK,
-                'rows' => isset($data['data']) ? $data['data'] : []
+                'status' => $response['status'],
+                'rows' => $response['data']
             ];
 
             return new FamaResponse($data);
 
         } catch (Exception $exception) {
-            return new FamaResponse($exception);
-        } catch (TransportExceptionInterface $exception) {
-            return new FamaResponse($exception);
-        } catch (ClientExceptionInterface $exception) {
-            return new FamaResponse($exception);
-        } catch (DecodingExceptionInterface $exception) {
-            return new FamaResponse($exception);
-        } catch (RedirectionExceptionInterface $exception) {
-            return new FamaResponse($exception);
-        } catch (ServerExceptionInterface $exception) {
             return new FamaResponse($exception);
         }
     }
 
 
     /**
-     * Get Carbon Intensity data for current half hour
+     * Get Carbon Intensity data for today or specific date or specific date and period
+     * @see https://carbon-intensity.github.io/api-definitions/#get-intensity-date
+     * @see https://carbon-intensity.github.io/api-definitions/#get-intensity-date-date
+     * @see https://carbon-intensity.github.io/api-definitions/#get-intensity-date-date-period
+     *
      * @Route("/intensity/date/{date?}/{period?}", methods={"GET"}, requirements={
      *     "_format":"json",
      *     "date":"\d{4}-\d{2}-\d{2}",
      *     "period":"([1-9]|[1-3][0-9]|4[0-8])"
      * })
      * @param Request $request
-     * @param string $date
-     * @param int $period
+     * @param string $date - optional param. Date in YYYY-MM-DD format e.g. 2017-08-25
+     * @param int $period - optional param. Half hour settlement period between 1-48 e.g. 42
      * @return FamaResponse
-     * @throws Exception
+     * @throws ClientExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
      */
     public function getRowsByDate(Request $request, $date = null, $period = null): FamaResponse
     {
         try {
-            $url = '/date';
+            $url = self::URL . '/date';
             if (!is_null($date)) {
                 $url .= '/' . $date;
             }
             if (!is_null($period)) {
                 $url .= '/' . $period;
             }
-            $response = $this->httpClient->request('GET', self::URL . $url);
-            $data = $response->toArray();
-
-            if ($response->getStatusCode() !== 200 && isset($data['error'])) {
-                throw new Exception($data['error']['code'], $response->getStatusCode());
+            $response = $this->fetchData($url);
+            if ($response['status'] !== 200 && isset($response['data'])) {
+                throw new Exception($response['data'], $response['status']);
             }
 
             $data = [
-                'status' => Response::HTTP_OK,
-                'rows' => isset($data['data']) ? $data['data'] : []
+                'status' => $response['status'],
+                'rows' => $response['data']
             ];
 
             return new FamaResponse($data);
 
         } catch (Exception $exception) {
             return new FamaResponse($exception);
-        } catch (TransportExceptionInterface $exception) {
-            return new FamaResponse($exception);
-        } catch (ClientExceptionInterface $exception) {
-            return new FamaResponse($exception);
-        } catch (DecodingExceptionInterface $exception) {
-            return new FamaResponse($exception);
-        } catch (RedirectionExceptionInterface $exception) {
-            return new FamaResponse($exception);
-        } catch (ServerExceptionInterface $exception) {
+        }
+    }
+
+
+    /**
+     * Get Carbon Intensity factors for each fuel type
+     * @see https://carbon-intensity.github.io/api-definitions/#get-intensity-factors
+     *
+     * @Route("/intensity/factors", methods={"GET"}, requirements={"_format":"json"})
+     * @return FamaResponse
+     * @throws ClientExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
+     */
+    public function getFactors(): FamaResponse
+    {
+        try {
+            $response = $this->fetchData(self::URL . '/factors');
+            if ($response['status'] !== 200 && isset($response['data'])) {
+                throw new Exception($response['data'], $response['status']);
+            }
+
+            $data = [
+                'status' => $response['status'],
+                'rows' => $response['data']
+            ];
+
+            return new FamaResponse($data);
+
+        } catch (Exception $exception) {
             return new FamaResponse($exception);
         }
+    }
+
+
+    /**
+     * @param string $url
+     * @return array
+     * @throws ClientExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
+     */
+    private function fetchData($url): array
+    {
+        $response = $this->httpClient->request('GET', $url, [
+            'headers' => [
+                'Accept' => 'application/json',
+            ],
+        ]);
+
+        $data = $response->toArray();
+
+        return [
+            'status' => $response->getStatusCode(),
+            'data' => $response->getStatusCode() === 200 ? $data['data'] : $data['error']['code']
+        ];
     }
 }

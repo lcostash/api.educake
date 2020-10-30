@@ -7,5 +7,5 @@ abstract class ConstraintEnum
     /**
      * @var integer
      */
-    const FIND = 1;
+    const INTENSITY_DATE = 1;
 }

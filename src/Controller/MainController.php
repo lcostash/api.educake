@@ -2,12 +2,10 @@
 
 namespace App\Controller;
 
-use App\Core\Enum\ConstraintEnum;
 use App\Core\FamaCore;
 use App\Core\FamaReason;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Validator\Constraint;
-use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\Validation;
 use Exception;
@@ -19,39 +17,6 @@ class MainController extends AbstractController
      */
     public function __construct()
     {
-    }
-
-    /**
-     * @param string $key
-     * @return array
-     */
-    protected function getRules($key): array
-    {
-        $rules = [
-            'find' => [
-                new Assert\Regex(['pattern' => '/[a-zA-Z0-9 ]/']),
-                new Assert\Length(['min' => 3, 'max' => 35])
-            ]
-        ];
-
-        return isset($rules[$key]) ? $rules[$key] : [];
-    }
-
-    /**
-     * @param int $profile
-     * @return Assert\Collection
-     */
-    protected function getConstraint(int $profile)
-    {
-        $constraint = new Assert\Collection([]);
-
-        if ($profile === ConstraintEnum::FIND) {
-            $constraint = new Assert\Collection([
-                'find' => array_merge($this->getRules('find'), [new Assert\Required()])
-            ]);
-        }
-
-        return $constraint;
     }
 
     /**

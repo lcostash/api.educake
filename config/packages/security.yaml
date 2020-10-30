@@ -4,7 +4,7 @@ security:
         users_in_memory: { memory: null }
     firewalls:
         find:
-            pattern: ^/find
+            pattern: ^/intensity
             stateless: true
             anonymous: true
         main:
@@ -21,5 +21,5 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-        - { path: ^/find, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/intensity, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         # - { path: ^/profile, roles: ROLE_USER }

@@ -41,8 +41,8 @@ class IntensityController extends MainController
      *
      * @Route("/intensity/{from?}/{to?}", methods={"GET"}, requirements={
      *     "_format":"json",
-     *     "from":"\d{4}-\d{2}-\d{2}T([0-9]|1[0-9]|2[0-3]):([0-9]|[1-4][0-9]|5[0-9])",
-     *     "to":"\d{4}-\d{2}-\d{2}T([0-9]|1[0-9]|2[0-3]):([0-9]|[1-4][0-9]|5[0-9])"
+     *     "from":"\d{4}-\d{2}-\d{2}T([0-9]|1[0-9]|2[0-3]):([0-9]|[1-4][0-9]|5[0-9])Z",
+     *     "to":"\d{4}-\d{2}-\d{2}T([0-9]|1[0-9]|2[0-3]):([0-9]|[1-4][0-9]|5[0-9])Z"
      * })
      * @param Request $request
      * @param string $from - optional param. Start datetime in in ISO8601 format YYYY-MM-DDThh:mmZ e.g. 2017-08-25T12:35Z

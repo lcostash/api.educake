@@ -151,14 +151,25 @@ class IntensityController extends MainController
                 throw new Exception($response['data'], $response['status']);
             }
 
+            $rows = [];
+            foreach ($response['data'] as $data) {
+                foreach ($data as $key => $value) {
+                    $rows[] = [
+                        'name' => $key,
+                        'value' => $value
+                    ];
+                }
+            }
+
             $data = [
                 'status' => $response['status'],
-                'rows' => $response['data']
+                'rows' => $rows
             ];
 
             return new FamaResponse($data);
 
-        } catch (Exception $exception) {
+        } catch
+        (Exception $exception) {
             return new FamaResponse($exception);
         }
     }
